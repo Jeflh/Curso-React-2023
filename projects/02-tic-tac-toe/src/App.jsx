@@ -5,8 +5,24 @@ import Square from './components/Square.jsx'
 import WinnerModal from './components/WinnerModal.jsx'
 
 function App() {
-  const [board, setBoard] = useState(Array(9).fill(null))
-  const [turn, setTurn] = useState(TURNS.X)
+  const [board, setBoard] = useState(()=>{
+    const boardFromStorage = window.localStorage.getItem('board')
+    if (boardFromStorage) return JSON.parse(boardFromStorage)
+    return Array(9).fill(null)
+  })
+
+  const [turn, setTurn] = useState(()=>{
+    const turnFromStorage = window.localStorage.getItem('turn')
+    if (turnFromStorage) return turnFromStorage
+    return TURNS.X
+  })
+
+  const [scores, setScores] = useState(()=>{
+    const scoresFromStorage = window.localStorage.getItem('scores')
+    if (scoresFromStorage) return JSON.parse(scoresFromStorage)
+    return [0, 0]
+  })
+
   const [winner, setWinner] = useState(null)
 
   const checkWinner = (boardToCheck) => {
@@ -34,6 +50,13 @@ function App() {
     setBoard(Array(9).fill(null))
     setTurn(TURNS.X)
     setWinner(null)
+    window.localStorage.removeItem('board')
+    window.localStorage.removeItem('turn')
+    window.localStorage.setItem('scores', JSON.stringify(scores))
+  }
+
+  const resetScores = () => {
+    setScores([0, 0])
   }
 
   const updateBoard = (index) => {
@@ -48,9 +71,21 @@ function App() {
     const newTurn = turn === TURNS.X ? TURNS.O : TURNS.X
     setTurn(newTurn)
 
+    // Guardar partida
+    window.localStorage.setItem('board', JSON.stringify(newBoard))
+    window.localStorage.setItem('turn', newTurn)
+
     // Revisar si hay ganador
     const newWinner = checkWinner(newBoard)
     if (newWinner) {
+      localStorage.removeItem('board')
+      localStorage.removeItem('turn')
+
+      const newScores = [...scores]
+      if (newWinner === TURNS.X) newScores[0]++
+      else newScores[1]++
+      setScores(newScores)
+
       confetti()
       setWinner(newWinner)
     }
@@ -58,12 +93,15 @@ function App() {
     else if (checkEndGame(newBoard)){
       setWinner(false)
     }
+
+    
   }
 
   return (
     <main className='board'>
       <h1>Tic Tac Toe</h1>
-      <button onClick={resetGame}>Reiniciar</button>
+      
+      <button onClick={resetGame}>Reiniciar Tablero</button>
       <section className='game'>
         {
           board.map((_, index) => {
@@ -86,7 +124,12 @@ function App() {
         <Square isSelected={turn === TURNS.O}>
           {TURNS.O}</Square>
       </section>
-
+      <div className='scores'> 
+        <h2>{scores[0]}</h2>
+        <h2>{scores[1]}</h2>
+      </div>
+      <button onClick={resetScores}>Reiniciar Puntuaciones</button>
+        
       <WinnerModal winner={winner}  resetGame={resetGame}/>
     </main>
   )
