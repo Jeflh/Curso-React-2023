@@ -131,6 +131,10 @@ function App() {
       <button onClick={resetScores}>Reiniciar Puntuaciones</button>
         
       <WinnerModal winner={winner}  resetGame={resetGame}/>
+
+      <footer>
+        <p>Hecho por Emmanuel Fernández</p>
+      </footer>
     </main>
   )
 }
